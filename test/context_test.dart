@@ -14,7 +14,7 @@ import 'package:tool_base/tool_base.dart';
 void main() {
   group('AppContext', () {
     group('global getter', () {
-      bool called;
+      late bool called;
 
       setUp(() {
         called = false;
@@ -90,7 +90,7 @@ void main() {
           () async {
         final Completer<void> outer = Completer<void>();
         final Completer<void> inner = Completer<void>();
-        String value;
+        late String value;
         await context.run<void>(
           body: () {
             outer.future.then<void>((_) {
@@ -101,6 +101,7 @@ void main() {
           fallbacks: <Type, Generator>{
             String: () => 'value',
           },
+          name: 'mock',
         );
         expect(value, isNull);
         outer.complete();
@@ -110,14 +111,16 @@ void main() {
 
       test('caches generated override values', () async {
         int consultationCount = 0;
-        String value;
+        late String value;
         await context.run<void>(
           body: () async {
             final StringBuffer buf = StringBuffer(context.get<String>());
             buf.write(context.get<String>());
-            await context.run<void>(body: () {
-              buf.write(context.get<String>());
-            });
+            await context.run<void>(
+                body: () {
+                  buf.write(context.get<String>());
+                },
+                name: 'mock');
             value = buf.toString();
           },
           overrides: <Type, Generator>{
@@ -126,6 +129,7 @@ void main() {
               return 'v';
             },
           },
+          name: 'mock',
         );
         expect(value, 'vvv');
         expect(consultationCount, 1);
@@ -133,14 +137,16 @@ void main() {
 
       test('caches generated fallback values', () async {
         int consultationCount = 0;
-        String value;
+        late String value;
         await context.run(
           body: () async {
             final StringBuffer buf = StringBuffer(context.get<String>());
             buf.write(context.get<String>());
-            await context.run<void>(body: () {
-              buf.write(context.get<String>());
-            });
+            await context.run<void>(
+                body: () {
+                  buf.write(context.get<String>());
+                },
+                name: 'mock');
             value = buf.toString();
           },
           fallbacks: <Type, Generator>{
@@ -149,6 +155,7 @@ void main() {
               return 'v';
             },
           },
+          name: 'mock',
         );
         expect(value, 'vvv');
         expect(consultationCount, 1);
@@ -160,6 +167,7 @@ void main() {
           overrides: <Type, Generator>{
             String: () => null,
           },
+          name: 'mock',
         );
         expect(value, isNull);
       });
@@ -174,6 +182,7 @@ void main() {
             String: () => '${context.get<double>()}',
             double: () => context.get<int>() * 1.0,
           },
+          name: 'mock',
         );
         try {
           await value;
@@ -188,9 +197,11 @@ void main() {
 
     group('run', () {
       test('returns the value returned by body', () async {
-        expect(await context.run<int>(body: () => 123), 123);
-        expect(await context.run<String>(body: () => 'value'), 'value');
-        expect(await context.run<int>(body: () async => 456), 456);
+        expect(await context.run<int>(body: () => 123, name: 'mock'), 123);
+        expect(await context.run<String>(body: () => 'value', name: 'mock'),
+            'value');
+        expect(
+            await context.run<int>(body: () async => 456, name: 'mock'), 456);
       });
 
       test('passes name to child context', () async {
@@ -202,7 +213,7 @@ void main() {
       });
 
       group('fallbacks', () {
-        bool called;
+        late bool called;
 
         setUp(() {
           called = false;
@@ -219,8 +230,10 @@ void main() {
                 fallbacks: <Type, Generator>{
                   String: () => 'child',
                 },
+                name: 'mock',
               );
             },
+            name: 'mock',
           );
           expect(called, isTrue);
           expect(value, 'child');
@@ -241,11 +254,13 @@ void main() {
                     return 'child';
                   },
                 },
+                name: 'mock',
               );
             },
             fallbacks: <Type, Generator>{
               String: () => 'parent',
             },
+            name: 'mock',
           );
           expect(called, isTrue);
           expect(value, 'parent');
@@ -261,6 +276,7 @@ void main() {
               int: () => 123,
               String: () => '-${context.get<int>()}-',
             },
+            name: 'mock',
           );
           expect(value, '-123-');
         });
@@ -276,6 +292,7 @@ void main() {
                 overrides: <Type, Generator>{
                   String: () => 'child',
                 },
+                name: 'mock',
               );
             },
             fallbacks: <Type, Generator>{
@@ -284,6 +301,7 @@ void main() {
                 return 'parent';
               },
             },
+            name: 'mock',
           );
           expect(value, 'child');
           expect(parentConsulted, isFalse);

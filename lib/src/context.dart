@@ -33,7 +33,7 @@ import 'context_runner.dart';
 export 'package:tool_base/src/base/context.dart' show Generator;
 
 /// Return the test logger. This assumes that the current Logger is a BufferLogger.
-BufferLogger get testLogger => context.get<Logger>();
+BufferLogger get testLogger => context.get<BufferLogger>();
 
 //FakeDeviceManager get testDeviceManager => context.get<DeviceManager>();
 //FakeDoctor get testDoctor => context.get<Doctor>();
@@ -44,19 +44,18 @@ typedef ContextInitializer = void Function(AppContext testContext);
 void testUsingContext(
   String description,
   dynamic testMethod(), {
-  Timeout timeout,
+  Timeout? timeout,
   Map<Type, Generator> overrides = const <Type, Generator>{},
   bool initializeFlutterRoot = true,
-  String testOn,
-  bool
-      skip, // should default to `false`, but https://github.com/dart-lang/test/issues/545 doesn't allow this
+  String? testOn,
+  bool skip = false,
 }) {
   // Ensure we don't rely on the default [Config] constructor which will
   // leak a sticky $HOME/.flutter_settings behind!
-  Directory configDir;
+  Directory? configDir;
   tearDown(() {
     if (configDir != null) {
-      tryToDelete(configDir);
+      tryToDelete(configDir!);
       configDir = null;
     }
   });
@@ -64,7 +63,7 @@ void testUsingContext(
     configDir =
         fs.systemTempDirectory.createTempSync('flutter_config_dir_test.');
     final File settingsFile =
-        fs.file(fs.path.join(configDir.path, '.flutter_settings'));
+        fs.file(fs.path.join(configDir!.path, '.flutter_settings'));
     return Config(settingsFile);
   }
 
@@ -95,7 +94,7 @@ void testUsingContext(
         },
         body: () {
           final String flutterRoot = getFlutterRoot();
-          return runZoned<Future<dynamic>>(() {
+          return runZonedGuarded<Future<dynamic>>(() {
             try {
               return context.run<dynamic>(
                 // Apply the overrides to the test context in the zone since their
@@ -106,7 +105,7 @@ void testUsingContext(
                   if (initializeFlutterRoot) {
                     // Provide a sane default for the flutterRoot directory. Individual
                     // tests can override this either in the test or during setup.
-                    Cache.flutterRoot ??= flutterRoot;
+                    Cache.flutterRoot = flutterRoot;
                   }
                   return await testMethod();
                 },
@@ -115,7 +114,7 @@ void testUsingContext(
               _printBufferedErrors(context);
               rethrow;
             }
-          }, onError: (dynamic error, StackTrace stackTrace) {
+          }, (dynamic error, StackTrace stackTrace) {
             io.stdout.writeln(error);
             io.stdout.writeln(stackTrace);
             _printBufferedErrors(context);
@@ -132,7 +131,7 @@ void testUsingContext(
 
 void _printBufferedErrors(AppContext testContext) {
   if (testContext.get<Logger>() is BufferLogger) {
-    final BufferLogger bufferLogger = testContext.get<Logger>();
+    final BufferLogger bufferLogger = testContext.get<BufferLogger>();
     if (bufferLogger.errorText.isNotEmpty) print(bufferLogger.errorText);
     bufferLogger.clear();
   }
@@ -238,19 +237,10 @@ void _printBufferedErrors(AppContext testContext) {
 
 class FakeOperatingSystemUtils implements OperatingSystemUtils {
   @override
-  ProcessResult makeExecutable(File file) => null;
-
-  @override
   void chmod(FileSystemEntity entity, String mode) {}
 
   @override
-  File which(String execName) => null;
-
-  @override
   List<File> whichAll(String execName) => <File>[];
-
-  @override
-  File makePipe(String path) => null;
 
   @override
   void zip(Directory data, File zipFile) {}
@@ -275,89 +265,61 @@ class FakeOperatingSystemUtils implements OperatingSystemUtils {
 
   @override
   Future<int> findFreePort({bool ipv6 = false}) async => 12345;
+
+  @override
+  void makeExecutable(File file) {}
+
+  @override
+  File makePipe(String path) {
+    throw UnimplementedError();
+  }
+
+  @override
+  File which(String execName) {
+    throw UnimplementedError();
+  }
 }
 
 //class MockIOSSimulatorUtils extends Mock implements IOSSimulatorUtils {}
 
 class FakeUsage implements Usage {
   @override
-  bool get isFirstRun => false;
+  bool enabled = true;
 
   @override
-  bool get suppressAnalytics => false;
+  bool suppressAnalytics = true;
 
   @override
-  set suppressAnalytics(bool value) {}
+  String get clientId => throw UnimplementedError();
 
   @override
-  bool get enabled => true;
+  Future<void> ensureAnalyticsSent() {
+    throw UnimplementedError();
+  }
 
   @override
-  set enabled(bool value) {}
+  bool get isFirstRun => throw UnimplementedError();
 
   @override
-  String get clientId => '00000000-0000-4000-0000-000000000000';
-
-  @override
-  void sendCommand(String command, {Map<String, String> parameters}) {}
-
-  @override
-  void sendEvent(String category, String parameter,
-      {Map<String, String> parameters}) {}
-
-  @override
-  void sendTiming(String category, String variableName, Duration duration,
-      {String label}) {}
-
-  @override
-  void sendException(dynamic exception) {}
-
-  @override
-  Stream<Map<String, dynamic>> get onSend => null;
-
-  @override
-  Future<void> ensureAnalyticsSent() => Future<void>.value();
+  Stream<Map<String, dynamic>> get onSend => throw UnimplementedError();
 
   @override
   void printWelcome() {}
-}
 
-//class FakeXcodeProjectInterpreter implements XcodeProjectInterpreter {
-//  @override
-//  bool get isInstalled => true;
-//
-//  @override
-//  String get versionText => 'Xcode 9.2';
-//
-//  @override
-//  int get majorVersion => 9;
-//
-//  @override
-//  int get minorVersion => 2;
-//
-//  @override
-//  Map<String, String> getBuildSettings(String projectPath, String target) {
-//    return <String, String>{};
-//  }
-//
-//  @override
-//  Future<XcodeProjectInfo> getInfo(String projectPath) async {
-//    return XcodeProjectInfo(
-//      <String>['Runner'],
-//      <String>['Debug', 'Release'],
-//      <String>['Runner'],
-//    );
-//  }
-//}
-//
-//class MockFlutterVersion extends Mock implements FlutterVersion {
-//  MockFlutterVersion({bool isStable = false}) : _isStable = isStable;
-//
-//  final bool _isStable;
-//
-//  @override
-//  bool get isMaster => !_isStable;
-//}
+  @override
+  void sendCommand(String command, {Map<String, String>? parameters}) {}
+
+  @override
+  void sendException(exception) {}
+
+  @override
+  void sendTiming(String category, String variableName, Duration duration,
+      {String? label}) {}
+
+  @override
+  void sendEvent(String category, String parameter,
+      {Map<String, String>? parameters}) {}
+}
 
 class MockHttpClient extends Mock implements HttpClient {}
 

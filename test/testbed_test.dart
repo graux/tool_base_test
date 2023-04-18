@@ -15,13 +15,13 @@ import 'package:tool_base_test/tool_base_test.dart';
 //import '../src/common.dart';
 //import '../src/testbed.dart';
 
+typedef Generator = dynamic Function();
 void main() {
   group('Testbed', () {
-
     test('Can provide default interfaces', () async {
       final Testbed testbed = Testbed();
 
-      FileSystem localFileSystem;
+      late FileSystem localFileSystem;
       await testbed.run(() {
         localFileSystem = fs;
       });
@@ -34,7 +34,7 @@ void main() {
         A: () => A(),
       });
 
-      A instance;
+      late A instance;
       await testbed.run(() {
         instance = context.get<A>();
       });
@@ -47,7 +47,7 @@ void main() {
         A: () => A(),
       });
 
-      A instance;
+      late A instance;
       await testbed.run(() {
         instance = context.get<A>();
       }, overrides: <Type, Generator>{
@@ -61,7 +61,7 @@ void main() {
       final Testbed testbed = Testbed();
       await testbed.run(() async {
         final HttpClient client = HttpClient();
-        final HttpClientRequest request = await client.getUrl(null);
+        final HttpClientRequest request = await client.getUrl(Uri.parse(""));
         final HttpClientResponse response = await request.close();
 
         expect(response.statusCode, HttpStatus.badRequest);
@@ -73,7 +73,7 @@ void main() {
       final Testbed testbed = Testbed();
 
       expect(testbed.run(() async {
-        Timer.periodic(const Duration(seconds: 1), (Timer timer) { });
+        Timer.periodic(const Duration(seconds: 1), (Timer timer) {});
       }), throwsA(isA<StateError>()));
     });
 
@@ -81,7 +81,8 @@ void main() {
       final Testbed testbed = Testbed();
 
       testbed.run(() async {
-        final Timer timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) { });
+        final Timer timer =
+            Timer.periodic(const Duration(seconds: 1), (Timer timer) {});
         timer.cancel();
       });
     });

@@ -160,20 +160,22 @@ class MockProcessManager extends Mock implements ProcessManager {
   ProcessFactory processFactory = (List<String> commands) => MockProcess();
   bool canRunSucceeds = true;
   bool runSucceeds = true;
-  List<String> commands;
+  List<String> commands = [];
 
   @override
-  bool canRun(dynamic command, {String workingDirectory}) => canRunSucceeds;
+  bool canRun(dynamic executable, {String? workingDirectory}) => canRunSucceeds;
 
   @override
   Future<Process> start(
-    List<dynamic> command, {
-    String workingDirectory,
-    Map<String, String> environment,
+    List<Object> command, {
+    String? workingDirectory,
+    Map<String, String>? environment,
     bool includeParentEnvironment = true,
     bool runInShell = false,
     ProcessStartMode mode = ProcessStartMode.normal,
   }) {
+    assert(command is List<String>);
+    command = command as List<String>;
     if (!runSucceeds) {
       final String executable = command[0];
       final List<String> arguments =
@@ -188,14 +190,16 @@ class MockProcessManager extends Mock implements ProcessManager {
 
 /// A process that exits successfully with no output and ignores all input.
 class MockProcess extends Mock implements Process {
+  late MemoryIOSink _stdin;
+
   MockProcess({
     this.pid = 1,
-    Future<int> exitCode,
-    Stream<List<int>> stdin,
+    Future<int>? exitCode,
+    MemoryIOSink? stdin,
     this.stdout = const Stream<List<int>>.empty(),
     this.stderr = const Stream<List<int>>.empty(),
   })  : exitCode = exitCode ?? Future<int>.value(0),
-        stdin = stdin ?? MemoryIOSink();
+        _stdin = stdin ?? MemoryIOSink();
 
   @override
   final int pid;
@@ -204,7 +208,7 @@ class MockProcess extends Mock implements Process {
   final Future<int> exitCode;
 
   @override
-  final io.IOSink stdin;
+  io.IOSink get stdin => _stdin;
 
   @override
   final Stream<List<int>> stdout;
@@ -215,14 +219,15 @@ class MockProcess extends Mock implements Process {
 
 /// A fake process implemenation which can be provided all necessary values.
 class FakeProcess implements Process {
+  late MemoryIOSink _stdin;
   FakeProcess({
     this.pid = 1,
-    Future<int> exitCode,
-    Stream<List<int>> stdin,
+    Future<int>? exitCode,
+    MemoryIOSink? stdin,
     this.stdout = const Stream<List<int>>.empty(),
     this.stderr = const Stream<List<int>>.empty(),
   })  : exitCode = exitCode ?? Future<int>.value(0),
-        stdin = stdin ?? MemoryIOSink();
+        _stdin = stdin ?? MemoryIOSink();
 
   @override
   final int pid;
@@ -231,7 +236,7 @@ class FakeProcess implements Process {
   final Future<int> exitCode;
 
   @override
-  final io.IOSink stdin;
+  io.IOSink get stdin => _stdin;
 
   @override
   final Stream<List<int>> stdout;
@@ -323,16 +328,6 @@ class MemoryIOSink implements IOSink {
   }
 
   @override
-  void write(Object obj) {
-    add(encoding.encode('$obj'));
-  }
-
-  @override
-  void writeln([Object obj = '']) {
-    add(encoding.encode('$obj\n'));
-  }
-
-  @override
   void writeAll(Iterable<dynamic> objects, [String separator = '']) {
     bool addSeparator = false;
     for (dynamic object in objects) {
@@ -345,11 +340,6 @@ class MemoryIOSink implements IOSink {
   }
 
   @override
-  void addError(dynamic error, [StackTrace stackTrace]) {
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> get done => close();
 
   @override
@@ -357,13 +347,27 @@ class MemoryIOSink implements IOSink {
 
   @override
   Future<void> flush() async {}
+
+  @override
+  void addError(Object error, [StackTrace? stackTrace]) {
+    throw UnimplementedError();
+  }
+
+  @override
+  void write(Object? object) {
+    add(encoding.encode('$object'));
+  }
+
+  @override
+  void writeln([Object? object = ""]) {
+    add(encoding.encode('$object\n'));
+  }
 }
 
 class MemoryStdout extends MemoryIOSink implements io.Stdout {
   @override
   bool get hasTerminal => _hasTerminal;
   set hasTerminal(bool value) {
-    assert(value != null);
     _hasTerminal = value;
   }
 
@@ -375,7 +379,6 @@ class MemoryStdout extends MemoryIOSink implements io.Stdout {
   @override
   bool get supportsAnsiEscapes => _supportsAnsiEscapes;
   set supportsAnsiEscapes(bool value) {
-    assert(value != null);
     _supportsAnsiEscapes = value;
   }
 
@@ -383,21 +386,36 @@ class MemoryStdout extends MemoryIOSink implements io.Stdout {
 
   @override
   int get terminalColumns {
-    if (_terminalColumns != null) return _terminalColumns;
+    if (_terminalColumns != null) return _terminalColumns!;
     throw const io.StdoutException('unspecified mock value');
   }
 
   set terminalColumns(int value) => _terminalColumns = value;
-  int _terminalColumns;
+  int? _terminalColumns;
 
   @override
   int get terminalLines {
-    if (_terminalLines != null) return _terminalLines;
+    if (_terminalLines != null) return _terminalLines!;
     throw const io.StdoutException('unspecified mock value');
   }
 
   set terminalLines(int value) => _terminalLines = value;
-  int _terminalLines;
+  int? _terminalLines;
+
+  @override
+  void addError(Object error, [StackTrace? stackTrace]) {
+    throw UnimplementedError();
+  }
+
+  @override
+  void write(Object? object) {
+    add(encoding.encode('$object'));
+  }
+
+  @override
+  void writeln([Object? object = ""]) {
+    add(encoding.encode('$object\n'));
+  }
 }
 
 /// A Stdio that collects stdout and supports simulated stdin.
@@ -631,13 +649,13 @@ class MockStdIn extends Mock implements IOSink {
   }
 
   @override
-  void write([Object o = '']) {
-    stdInWrites.write(o);
+  void write(Object? object) {
+    stdInWrites.write(object);
   }
 
   @override
-  void writeln([Object o = '']) {
-    stdInWrites.writeln(o);
+  void writeln([Object? object = ""]) {
+    stdInWrites.writeln(object);
   }
 }
 
