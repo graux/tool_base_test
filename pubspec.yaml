@@ -9,11 +9,11 @@ environment:
 
 dependencies:
   tool_base:
-    # git: https://github.com/DrBu7cher/tool_base.git
-    path: /home/jbadstuebner/Dokumente/git/github.com/DrBu7cher/tool_base/main
+    git: https://github.com/DrBu7cher/tool_base.git
+    # path: /home/jbadstuebner/Dokumente/git/github.com/DrBu7cher/tool_base/main
   reporting:
-    # git: https://github.com/DrBu7cher/reporting.git
-    path: /home/jbadstuebner/Dokumente/git/github.com/DrBu7cher/reporting/main
+    git: https://github.com/DrBu7cher/reporting.git
+    # path: /home/jbadstuebner/Dokumente/git/github.com/DrBu7cher/reporting/main
 
 dev_dependencies:
   test: ^1.24.1
