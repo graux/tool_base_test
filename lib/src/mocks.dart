@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io show IOSink, ProcessSignal, Stdout, StdoutException;
 
+import 'package:test/test.dart';
 //import 'package:tool_base/src/android/android_device.dart';
 //import 'package:tool_base/src/android/android_sdk.dart' show AndroidSdk;
 //import 'package:tool_base/src/application_package.dart';
@@ -26,7 +27,9 @@ import 'package:process/process.dart';
 
 import 'common.dart';
 
-final Generator kNoColorTerminalPlatform = () => FakePlatform.fromPlatform(const LocalPlatform())..stdoutSupportsAnsi = false;
+final Generator kNoColorTerminalPlatform = () =>
+    FakePlatform.fromPlatform(const LocalPlatform())
+        .copyWith(stdoutSupportsAnsi: false);
 
 //class MockApplicationPackageStore extends ApplicationPackageStore {
 //  MockApplicationPackageStore() : super(
@@ -160,20 +163,21 @@ class MockProcessManager extends Mock implements ProcessManager {
   List<String> commands;
 
   @override
-  bool canRun(dynamic command, { String workingDirectory }) => canRunSucceeds;
+  bool canRun(dynamic command, {String workingDirectory}) => canRunSucceeds;
 
   @override
   Future<Process> start(
-      List<dynamic> command, {
-        String workingDirectory,
-        Map<String, String> environment,
-        bool includeParentEnvironment = true,
-        bool runInShell = false,
-        ProcessStartMode mode = ProcessStartMode.normal,
-      }) {
+    List<dynamic> command, {
+    String workingDirectory,
+    Map<String, String> environment,
+    bool includeParentEnvironment = true,
+    bool runInShell = false,
+    ProcessStartMode mode = ProcessStartMode.normal,
+  }) {
     if (!runSucceeds) {
       final String executable = command[0];
-      final List<String> arguments = command.length > 1 ? command.sublist(1) : <String>[];
+      final List<String> arguments =
+          command.length > 1 ? command.sublist(1) : <String>[];
       throw ProcessException(executable, arguments);
     }
 
@@ -190,7 +194,7 @@ class MockProcess extends Mock implements Process {
     Stream<List<int>> stdin,
     this.stdout = const Stream<List<int>>.empty(),
     this.stderr = const Stream<List<int>>.empty(),
-  }) : exitCode = exitCode ?? Future<int>.value(0),
+  })  : exitCode = exitCode ?? Future<int>.value(0),
         stdin = stdin ?? MemoryIOSink();
 
   @override
@@ -217,7 +221,7 @@ class FakeProcess implements Process {
     Stream<List<int>> stdin,
     this.stdout = const Stream<List<int>>.empty(),
     this.stderr = const Stream<List<int>>.empty(),
-  }) : exitCode = exitCode ?? Future<int>.value(0),
+  })  : exitCode = exitCode ?? Future<int>.value(0),
         stdin = stdin ?? MemoryIOSink();
 
   @override
@@ -256,7 +260,8 @@ class PromptingProcess implements Process {
     await _stdoutController.close();
   }
 
-  final StreamController<List<int>> _stdoutController = StreamController<List<int>>();
+  final StreamController<List<int>> _stdoutController =
+      StreamController<List<int>>();
   final CompleterIOSink _stdin = CompleterIOSink();
 
   @override
@@ -286,8 +291,7 @@ class CompleterIOSink extends MemoryIOSink {
 
   @override
   void add(List<int> data) {
-    if (!_completer.isCompleted)
-      _completer.complete(data);
+    if (!_completer.isCompleted) _completer.complete(data);
     super.add(data);
   }
 }
@@ -324,12 +328,12 @@ class MemoryIOSink implements IOSink {
   }
 
   @override
-  void writeln([ Object obj = '' ]) {
+  void writeln([Object obj = '']) {
     add(encoding.encode('$obj\n'));
   }
 
   @override
-  void writeAll(Iterable<dynamic> objects, [ String separator = '' ]) {
+  void writeAll(Iterable<dynamic> objects, [String separator = '']) {
     bool addSeparator = false;
     for (dynamic object in objects) {
       if (addSeparator) {
@@ -341,7 +345,7 @@ class MemoryIOSink implements IOSink {
   }
 
   @override
-  void addError(dynamic error, [ StackTrace stackTrace ]) {
+  void addError(dynamic error, [StackTrace stackTrace]) {
     throw UnimplementedError();
   }
 
@@ -349,10 +353,10 @@ class MemoryIOSink implements IOSink {
   Future<void> get done => close();
 
   @override
-  Future<void> close() async { }
+  Future<void> close() async {}
 
   @override
-  Future<void> flush() async { }
+  Future<void> flush() async {}
 }
 
 class MemoryStdout extends MemoryIOSink implements io.Stdout {
@@ -362,6 +366,7 @@ class MemoryStdout extends MemoryIOSink implements io.Stdout {
     assert(value != null);
     _hasTerminal = value;
   }
+
   bool _hasTerminal = true;
 
   @override
@@ -373,23 +378,24 @@ class MemoryStdout extends MemoryIOSink implements io.Stdout {
     assert(value != null);
     _supportsAnsiEscapes = value;
   }
+
   bool _supportsAnsiEscapes = true;
 
   @override
   int get terminalColumns {
-    if (_terminalColumns != null)
-      return _terminalColumns;
+    if (_terminalColumns != null) return _terminalColumns;
     throw const io.StdoutException('unspecified mock value');
   }
+
   set terminalColumns(int value) => _terminalColumns = value;
   int _terminalColumns;
 
   @override
   int get terminalLines {
-    if (_terminalLines != null)
-      return _terminalLines;
+    if (_terminalLines != null) return _terminalLines;
     throw const io.StdoutException('unspecified mock value');
   }
+
   set terminalLines(int value) => _terminalLines = value;
   int _terminalLines;
 }
@@ -413,8 +419,10 @@ class MockStdio extends Stdio {
     _stdin.add(utf8.encode('$line\n'));
   }
 
-  List<String> get writtenToStdout => _stdout.writes.map<String>(_stdout.encoding.decode).toList();
-  List<String> get writtenToStderr => _stderr.writes.map<String>(_stderr.encoding.decode).toList();
+  List<String> get writtenToStdout =>
+      _stdout.writes.map<String>(_stdout.encoding.decode).toList();
+  List<String> get writtenToStderr =>
+      _stderr.writes.map<String>(_stderr.encoding.decode).toList();
 }
 
 //class MockPollingDeviceDiscovery extends PollingDeviceDiscovery {
@@ -609,7 +617,8 @@ class FakeProcessResult implements ProcessResult {
   final dynamic stdout;
 
   @override
-  String toString() => stdout?.toString() ?? stderr?.toString() ?? runtimeType.toString();
+  String toString() =>
+      stdout?.toString() ?? stderr?.toString() ?? runtimeType.toString();
 }
 
 class MockStdIn extends Mock implements IOSink {
@@ -622,12 +631,12 @@ class MockStdIn extends Mock implements IOSink {
   }
 
   @override
-  void write([ Object o = '' ]) {
+  void write([Object o = '']) {
     stdInWrites.write(o);
   }
 
   @override
-  void writeln([ Object o = '' ]) {
+  void writeln([Object o = '']) {
     stdInWrites.writeln(o);
   }
 }

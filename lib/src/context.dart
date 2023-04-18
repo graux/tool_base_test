@@ -42,14 +42,15 @@ typedef ContextInitializer = void Function(AppContext testContext);
 
 @isTest
 void testUsingContext(
-    String description,
-    dynamic testMethod(), {
-      Timeout timeout,
-      Map<Type, Generator> overrides = const <Type, Generator>{},
-      bool initializeFlutterRoot = true,
-      String testOn,
-      bool skip, // should default to `false`, but https://github.com/dart-lang/test/issues/545 doesn't allow this
-    }) {
+  String description,
+  dynamic testMethod(), {
+  Timeout timeout,
+  Map<Type, Generator> overrides = const <Type, Generator>{},
+  bool initializeFlutterRoot = true,
+  String testOn,
+  bool
+      skip, // should default to `false`, but https://github.com/dart-lang/test/issues/545 doesn't allow this
+}) {
   // Ensure we don't rely on the default [Config] constructor which will
   // leak a sticky $HOME/.flutter_settings behind!
   Directory configDir;
@@ -60,10 +61,10 @@ void testUsingContext(
     }
   });
   Config buildConfig(FileSystem fs) {
-    configDir = fs.systemTempDirectory.createTempSync('flutter_config_dir_test.');
-    final File settingsFile = fs.file(
-        fs.path.join(configDir.path, '.flutter_settings')
-    );
+    configDir =
+        fs.systemTempDirectory.createTempSync('flutter_config_dir_test.');
+    final File settingsFile =
+        fs.file(fs.path.join(configDir.path, '.flutter_settings'));
     return Config(settingsFile);
   }
 
@@ -123,15 +124,16 @@ void testUsingContext(
         },
       );
     });
-  }, timeout: timeout ?? const Timeout(Duration(seconds: 60)),
-      testOn: testOn, skip: skip);
+  },
+      timeout: timeout ?? const Timeout(Duration(seconds: 60)),
+      testOn: testOn,
+      skip: skip);
 }
 
 void _printBufferedErrors(AppContext testContext) {
   if (testContext.get<Logger>() is BufferLogger) {
     final BufferLogger bufferLogger = testContext.get<Logger>();
-    if (bufferLogger.errorText.isNotEmpty)
-      print(bufferLogger.errorText);
+    if (bufferLogger.errorText.isNotEmpty) print(bufferLogger.errorText);
     bufferLogger.clear();
   }
 }
@@ -239,7 +241,7 @@ class FakeOperatingSystemUtils implements OperatingSystemUtils {
   ProcessResult makeExecutable(File file) => null;
 
   @override
-  void chmod(FileSystemEntity entity, String mode) { }
+  void chmod(FileSystemEntity entity, String mode) {}
 
   @override
   File which(String execName) => null;
@@ -251,16 +253,16 @@ class FakeOperatingSystemUtils implements OperatingSystemUtils {
   File makePipe(String path) => null;
 
   @override
-  void zip(Directory data, File zipFile) { }
+  void zip(Directory data, File zipFile) {}
 
   @override
-  void unzip(File file, Directory targetDirectory) { }
+  void unzip(File file, Directory targetDirectory) {}
 
   @override
   bool verifyZip(File file) => true;
 
   @override
-  void unpack(File gzippedTarFile, Directory targetDirectory) { }
+  void unpack(File gzippedTarFile, Directory targetDirectory) {}
 
   @override
   bool verifyGzip(File gzippedFile) => true;
@@ -285,28 +287,30 @@ class FakeUsage implements Usage {
   bool get suppressAnalytics => false;
 
   @override
-  set suppressAnalytics(bool value) { }
+  set suppressAnalytics(bool value) {}
 
   @override
   bool get enabled => true;
 
   @override
-  set enabled(bool value) { }
+  set enabled(bool value) {}
 
   @override
   String get clientId => '00000000-0000-4000-0000-000000000000';
 
   @override
-  void sendCommand(String command, { Map<String, String> parameters }) { }
+  void sendCommand(String command, {Map<String, String> parameters}) {}
 
   @override
-  void sendEvent(String category, String parameter, { Map<String, String> parameters }) { }
+  void sendEvent(String category, String parameter,
+      {Map<String, String> parameters}) {}
 
   @override
-  void sendTiming(String category, String variableName, Duration duration, { String label }) { }
+  void sendTiming(String category, String variableName, Duration duration,
+      {String label}) {}
 
   @override
-  void sendException(dynamic exception) { }
+  void sendException(dynamic exception) {}
 
   @override
   Stream<Map<String, dynamic>> get onSend => null;
@@ -315,7 +319,7 @@ class FakeUsage implements Usage {
   Future<void> ensureAnalyticsSent() => Future<void>.value();
 
   @override
-  void printWelcome() { }
+  void printWelcome() {}
 }
 
 //class FakeXcodeProjectInterpreter implements XcodeProjectInterpreter {
@@ -354,8 +358,6 @@ class FakeUsage implements Usage {
 //  @override
 //  bool get isMaster => !_isStable;
 //}
-
-class MockClock extends Mock implements SystemClock {}
 
 class MockHttpClient extends Mock implements HttpClient {}
 

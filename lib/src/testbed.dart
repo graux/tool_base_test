@@ -31,10 +31,13 @@ export 'package:tool_base/src/base/context.dart' show Generator;
 // this provider. For example, [BufferLogger], [MemoryFileSystem].
 final Map<Type, Generator> _testbedDefaults = <Type, Generator>{
   // Keeps tests fast by avoiding the actual file system.
-  FileSystem: () => MemoryFileSystem(style: platform.isWindows ? FileSystemStyle.windows : FileSystemStyle.posix),
+  FileSystem: () => MemoryFileSystem(
+      style:
+          platform.isWindows ? FileSystemStyle.windows : FileSystemStyle.posix),
   Logger: () => BufferLogger(), // Allows reading logs and prevents stdout.
   OperatingSystemUtils: () => FakeOperatingSystemUtils(),
-  OutputPreferences: () => OutputPreferences(showColor: false), // configures BufferLogger to avoid color codes.
+  OutputPreferences: () => OutputPreferences(
+      showColor: false), // configures BufferLogger to avoid color codes.
 //  Usage: () => NoOpUsage(), // prevent addition of analytics from burdening test mocks
 //  FlutterVersion: () => FakeFlutterVersion() // prevent requirement to mock git for test runner.
 };
@@ -84,7 +87,8 @@ class Testbed {
   ///
   /// `overrides` may be used to provide new context values for the single test
   /// case or override any context values from the setup.
-  FutureOr<T> run<T>(FutureOr<T> Function() test, {Map<Type, Generator> overrides}) {
+  FutureOr<T> run<T>(FutureOr<T> Function() test,
+      {Map<Type, Generator> overrides}) {
     final Map<Type, Generator> testOverrides = <Type, Generator>{
       ..._testbedDefaults,
       // Add the initial setUp overrides
@@ -102,18 +106,21 @@ class Testbed {
         return context.run<T>(
             name: 'testbed',
             overrides: testOverrides,
-            zoneSpecification: ZoneSpecification(
-                createTimer: (Zone self, ZoneDelegate parent, Zone zone, Duration duration, void Function() timer) {
-                  final Timer result = parent.createTimer(zone, duration, timer);
-                  timers[result] = StackTrace.current;
-                  return result;
-                },
-                createPeriodicTimer: (Zone self, ZoneDelegate parent, Zone zone, Duration period, void Function(Timer) timer) {
-                  final Timer result = parent.createPeriodicTimer(zone, period, timer);
-                  timers[result] = StackTrace.current;
-                  return result;
-                }
-            ),
+            zoneSpecification: ZoneSpecification(createTimer: (Zone self,
+                ZoneDelegate parent,
+                Zone zone,
+                Duration duration,
+                void Function() timer) {
+              final Timer result = parent.createTimer(zone, duration, timer);
+              timers[result] = StackTrace.current;
+              return result;
+            }, createPeriodicTimer: (Zone self, ZoneDelegate parent, Zone zone,
+                Duration period, void Function(Timer) timer) {
+              final Timer result =
+                  parent.createPeriodicTimer(zone, period, timer);
+              timers[result] = StackTrace.current;
+              return result;
+            }),
             body: () async {
               Cache.flutterRoot = '';
               if (_setup != null) {
@@ -123,7 +130,8 @@ class Testbed {
               Cache.flutterRoot = originalFlutterRoot;
               for (MapEntry<Timer, StackTrace> entry in timers.entries) {
                 if (entry.key.isActive) {
-                  throw StateError('A Timer was active at the end of a test: ${entry.value}');
+                  throw StateError(
+                      'A Timer was active at the end of a test: ${entry.value}');
                 }
               }
               return null;
@@ -162,13 +170,15 @@ class NoOpUsage implements Usage {
   void sendCommand(String command, {Map<String, String> parameters}) {}
 
   @override
-  void sendEvent(String category, String parameter,{ Map<String, String> parameters }) {}
+  void sendEvent(String category, String parameter,
+      {Map<String, String> parameters}) {}
 
   @override
   void sendException(dynamic exception) {}
 
   @override
-  void sendTiming(String category, String variableName, Duration duration, { String label }) {}
+  void sendTiming(String category, String variableName, Duration duration,
+      {String label}) {}
 }
 
 class FakeHttpClient implements HttpClient {
@@ -202,7 +212,7 @@ class FakeHttpClient implements HttpClient {
   @override
   set authenticateProxy(
       Future<bool> Function(String host, int port, String scheme, String realm)
-      f) {}
+          f) {}
 
   @override
   set badCertificateCallback(
@@ -245,7 +255,8 @@ class FakeHttpClient implements HttpClient {
   }
 
   @override
-  Future<HttpClientRequest> open(String method, String host, int port, String path) async {
+  Future<HttpClientRequest> open(
+      String method, String host, int port, String path) async {
     return FakeHttpClientRequest();
   }
 
@@ -283,6 +294,15 @@ class FakeHttpClient implements HttpClient {
   Future<HttpClientRequest> putUrl(Uri url) async {
     return FakeHttpClientRequest();
   }
+
+  @override
+  set connectionFactory(
+      Future<ConnectionTask<Socket>> Function(
+              Uri url, String proxyHost, int proxyPort)
+          f) {}
+
+  @override
+  set keyLog(Function(String line) callback) {}
 }
 
 class FakeHttpClientRequest implements HttpClientRequest {
@@ -354,10 +374,14 @@ class FakeHttpClientRequest implements HttpClientRequest {
 
   @override
   void writeln([Object obj = '']) {}
+
+  @override
+  void abort([Object exception, StackTrace stackTrace]) {}
 }
 
 class FakeHttpClientResponse implements HttpClientResponse {
-  final Stream<Uint8List> _delegate = Stream<Uint8List>.fromIterable(const Iterable<Uint8List>.empty());
+  final Stream<Uint8List> _delegate =
+      Stream<Uint8List>.fromIterable(const Iterable<Uint8List>.empty());
 
   @override
   final HttpHeaders headers = FakeHttpHeaders();
@@ -388,8 +412,10 @@ class FakeHttpClientResponse implements HttpClientResponse {
   bool get isRedirect => false;
 
   @override
-  StreamSubscription<Uint8List> listen(void Function(Uint8List event) onData, { Function onError, void Function() onDone, bool cancelOnError }) {
-    return const Stream<Uint8List>.empty().listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+  StreamSubscription<Uint8List> listen(void Function(Uint8List event) onData,
+      {Function onError, void Function() onDone, bool cancelOnError}) {
+    return const Stream<Uint8List>.empty().listen(onData,
+        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
   @override
@@ -399,8 +425,10 @@ class FakeHttpClientResponse implements HttpClientResponse {
   String get reasonPhrase => null;
 
   @override
-  Future<HttpClientResponse> redirect([ String method, Uri url, bool followLoops ]) {
-    return Future<HttpClientResponse>.error(UnsupportedError('Mocked response'));
+  Future<HttpClientResponse> redirect(
+      [String method, Uri url, bool followLoops]) {
+    return Future<HttpClientResponse>.error(
+        UnsupportedError('Mocked response'));
   }
 
   @override
@@ -443,7 +471,8 @@ class FakeHttpClientResponse implements HttpClientResponse {
   }
 
   @override
-  Stream<Uint8List> distinct([bool Function(Uint8List previous, Uint8List next) equals]) {
+  Stream<Uint8List> distinct(
+      [bool Function(Uint8List previous, Uint8List next) equals]) {
     return _delegate.distinct(equals);
   }
 
@@ -472,14 +501,15 @@ class FakeHttpClientResponse implements HttpClientResponse {
 
   @override
   Future<Uint8List> firstWhere(
-      bool Function(Uint8List element) test, {
-        List<int> Function() orElse,
-      }) {
+    bool Function(Uint8List element) test, {
+    List<int> Function() orElse,
+  }) {
     return _delegate.firstWhere(test, orElse: orElse);
   }
 
   @override
-  Future<S> fold<S>(S initialValue, S Function(S previous, Uint8List element) combine) {
+  Future<S> fold<S>(
+      S initialValue, S Function(S previous, Uint8List element) combine) {
     return _delegate.fold<S>(initialValue, combine);
   }
 
@@ -490,9 +520,9 @@ class FakeHttpClientResponse implements HttpClientResponse {
 
   @override
   Stream<Uint8List> handleError(
-      Function onError, {
-        bool Function(dynamic error) test,
-      }) {
+    Function onError, {
+    bool Function(dynamic error) test,
+  }) {
     return _delegate.handleError(onError, test: test);
   }
 
@@ -512,9 +542,9 @@ class FakeHttpClientResponse implements HttpClientResponse {
 
   @override
   Future<Uint8List> lastWhere(
-      bool Function(Uint8List element) test, {
-        List<int> Function() orElse,
-      }) {
+    bool Function(Uint8List element) test, {
+    List<int> Function() orElse,
+  }) {
     return _delegate.lastWhere(test, orElse: orElse);
   }
 
@@ -532,7 +562,8 @@ class FakeHttpClientResponse implements HttpClientResponse {
   }
 
   @override
-  Future<Uint8List> reduce(List<int> Function(Uint8List previous, Uint8List element) combine) {
+  Future<Uint8List> reduce(
+      List<int> Function(Uint8List previous, Uint8List element) combine) {
     return _delegate.reduce(combine);
   }
 
@@ -540,7 +571,8 @@ class FakeHttpClientResponse implements HttpClientResponse {
   Future<Uint8List> get single => _delegate.single;
 
   @override
-  Future<Uint8List> singleWhere(bool Function(Uint8List element) test, {List<int> Function() orElse}) {
+  Future<Uint8List> singleWhere(bool Function(Uint8List element) test,
+      {List<int> Function() orElse}) {
     return _delegate.singleWhere(test, orElse: orElse);
   }
 
@@ -566,9 +598,9 @@ class FakeHttpClientResponse implements HttpClientResponse {
 
   @override
   Stream<Uint8List> timeout(
-      Duration timeLimit, {
-        void Function(EventSink<Uint8List> sink) onTimeout,
-      }) {
+    Duration timeLimit, {
+    void Function(EventSink<Uint8List> sink) onTimeout,
+  }) {
     return _delegate.timeout(timeLimit, onTimeout: onTimeout);
   }
 
@@ -599,28 +631,28 @@ class FakeHttpHeaders extends HttpHeaders {
   List<String> operator [](String name) => <String>[];
 
   @override
-  void add(String name, Object value) { }
+  void clear() {}
 
   @override
-  void clear() { }
+  void forEach(void Function(String name, List<String> values) f) {}
 
   @override
-  void forEach(void Function(String name, List<String> values) f) { }
+  void noFolding(String name) {}
 
   @override
-  void noFolding(String name) { }
+  void remove(String name, Object value) {}
 
   @override
-  void remove(String name, Object value) { }
-
-  @override
-  void removeAll(String name) { }
-
-  @override
-  void set(String name, Object value) { }
+  void removeAll(String name) {}
 
   @override
   String value(String name) => null;
+
+  @override
+  void add(String name, Object value, {bool preserveHeaderCase = false}) {}
+
+  @override
+  void set(String name, Object value, {bool preserveHeaderCase = false}) {}
 }
 
 //class FakeFlutterVersion implements FlutterVersion {
