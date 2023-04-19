@@ -36,7 +36,7 @@ void main() {
 
       late A instance;
       await testbed.run(() {
-        instance = context.get<A>();
+        instance = context.get<A>()!;
       });
 
       expect(instance, isA<A>());
@@ -49,7 +49,7 @@ void main() {
 
       late A instance;
       await testbed.run(() {
-        instance = context.get<A>();
+        instance = context.get<A>()!;
       }, overrides: <Type, Generator>{
         A: () => B(),
       });

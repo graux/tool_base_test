@@ -33,7 +33,7 @@ import 'context_runner.dart';
 export 'package:tool_base/src/base/context.dart' show Generator;
 
 /// Return the test logger. This assumes that the current Logger is a BufferLogger.
-BufferLogger get testLogger => context.get<BufferLogger>();
+BufferLogger get testLogger => context.get<Logger>() as BufferLogger;
 
 //FakeDeviceManager get testDeviceManager => context.get<DeviceManager>();
 //FakeDoctor get testDoctor => context.get<Doctor>();
@@ -131,7 +131,7 @@ void testUsingContext(
 
 void _printBufferedErrors(AppContext testContext) {
   if (testContext.get<Logger>() is BufferLogger) {
-    final BufferLogger bufferLogger = testContext.get<BufferLogger>();
+    final BufferLogger bufferLogger = testContext.get<Logger>() as BufferLogger;
     if (bufferLogger.errorText.isNotEmpty) print(bufferLogger.errorText);
     bufferLogger.clear();
   }
