@@ -1,19 +1,19 @@
 name: tool_base_test
 description: A starting point for Dart libraries or applications.
 version: 1.1.0
-homepage: https://github.com/DrBu7cher/tool_base_test
+homepage: https://github.com/jonasbadstuebner/tool_base_test
 publish_to: none
 
 environment:
-  sdk: ">=2.18.6 <3.0.0"
+  sdk: ">=3.6.0<4.0.0"
 
 dependencies:
   tool_base:
-    git: https://github.com/DrBu7cher/tool_base.git
-    # path: /home/jbadstuebner/Dokumente/git/github.com/DrBu7cher/tool_base/main
+    git: https://github.com/jonasbadstuebner/tool_base.git
+    # path: /home/jbadstuebner/Dokumente/git/github.com/jonasbadstuebner/tool_base/main
   reporting:
-    git: https://github.com/DrBu7cher/reporting.git
-    # path: /home/jbadstuebner/Dokumente/git/github.com/DrBu7cher/reporting/main
+    git: https://github.com/jonasbadstuebner/reporting.git
+    # path: /home/jbadstuebner/Dokumente/git/github.com/jonasbadstuebner/reporting/main
 
 dev_dependencies:
   test: ^1.24.1
