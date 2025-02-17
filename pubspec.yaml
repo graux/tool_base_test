@@ -9,10 +9,10 @@ environment:
 
 dependencies:
   tool_base:
-    git: https://github.com/jonasbadstuebner/tool_base.git
+    git: https://github.com/graux/tool_base.git
     # path: /home/jbadstuebner/Dokumente/git/github.com/jonasbadstuebner/tool_base/main
   reporting:
-    git: https://github.com/jonasbadstuebner/reporting.git
+    git: https://github.com/graux/reporting.git
     # path: /home/jbadstuebner/Dokumente/git/github.com/jonasbadstuebner/reporting/main
 
 dev_dependencies:
